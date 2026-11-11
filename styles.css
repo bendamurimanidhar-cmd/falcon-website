@@ -1,0 +1,875 @@
+/* ==========================================================================
+   FALCON / FN-DSA CORPORATE & TECHNICAL EXPLAINER STYLESHEET
+   Design Language: ABTC.com High-Performance Technical Aesthetic
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap');
+
+:root {
+  color-scheme: dark;
+
+  /* ABTC Brand Palette */
+  --brand-blue: #2D4CFF;
+  --brand-blue-glow: rgba(45, 76, 255, 0.25);
+  --brand-blue-hover: #1f3edd;
+  --brand-cyan: #00d2ff;
+  --brand-red: #f52027;
+  --brand-green: #10b981;
+  --brand-amber: #f59e0b;
+
+  /* Dark Theme (Midnight Navy - ABTC Official Default) */
+  --bg-canvas: #080d1a;
+  --bg-surface: #0e1528;
+  --bg-card: #111a33;
+  --bg-card-hover: #162244;
+  --bg-subtle: #0b1122;
+  --bg-tag: #172447;
+  --border-color: #1e2c4f;
+  --border-strong: #2c3f70;
+  --text-main: #f0f4fd;
+  --text-muted: #9bb0d4;
+  --text-dim: #62769c;
+  --code-bg: #090f20;
+  --header-bg: #0e1528;
+
+  /* Typography */
+  --font-sans: 'Archivo', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Space Grotesk', var(--font-sans);
+  --font-mono: 'IBM Plex Mono', 'SFMono-Regular', Menlo, Monaco, Consolas, monospace;
+}
+
+/* Explicit Dark Theme */
+:root[data-theme="dark"],
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --bg-canvas: #080d1a;
+  --bg-surface: #0e1528;
+  --bg-card: #111a33;
+  --bg-card-hover: #162244;
+  --bg-subtle: #0b1122;
+  --bg-tag: #172447;
+  --border-color: #1e2c4f;
+  --border-strong: #2c3f70;
+  --text-main: #f0f4fd;
+  --text-muted: #9bb0d4;
+  --text-dim: #62769c;
+  --code-bg: #090f20;
+  --header-bg: #0e1528;
+}
+
+/* Explicit Light Theme */
+:root[data-theme="light"],
+html[data-theme="light"] {
+  color-scheme: light;
+  --bg-canvas: #f6f8fc;
+  --bg-surface: #ffffff;
+  --bg-card: #ffffff;
+  --bg-card-hover: #eef1ff;
+  --bg-subtle: #f0f3fa;
+  --bg-tag: #e8ecf8;
+  --border-color: #dce2ef;
+  --border-strong: #c2cce0;
+  --text-main: #0c1224;
+  --text-muted: #4e5973;
+  --text-dim: #7f8ba4;
+  --code-bg: #eaeffa;
+  --header-bg: #ffffff;
+}
+
+/* Auto Theme: When data-theme is not set, follow browser preference if light */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]):not([data-theme="light"]) {
+    color-scheme: light;
+    --bg-canvas: #f6f8fc;
+    --bg-surface: #ffffff;
+    --bg-card: #ffffff;
+    --bg-card-hover: #eef1ff;
+    --bg-subtle: #f0f3fa;
+    --bg-tag: #e8ecf8;
+    --border-color: #dce2ef;
+    --border-strong: #c2cce0;
+    --text-main: #0c1224;
+    --text-muted: #4e5973;
+    --text-dim: #7f8ba4;
+    --code-bg: #eaeffa;
+    --header-bg: #ffffff;
+  }
+}
+
+/* ==========================================================================
+   Base & Reset
+   ========================================================================== */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  font-size: 16px;
+}
+
+body {
+  background-color: var(--bg-canvas);
+  color: var(--text-main);
+  font-family: var(--font-sans);
+  line-height: 1.6;
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Live Animated Quantum Lattice Wallpaper (Cinema Canvas Effect) */
+.live-wallpaper-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.95;
+}
+
+.wallpaper-vignette {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at 50% 25%, transparent 20%, var(--bg-canvas) 85%);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.75;
+}
+
+/* Subtle architectural grid pattern background */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: 
+    linear-gradient(to right, var(--border-color) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--border-color) 1px, transparent 1px);
+  background-size: 40px 40px;
+  opacity: 0.25;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+/* ==========================================================================
+   Chamfered Polygon Sticky Header (ABTC Signature Component)
+   ========================================================================== */
+.header-wrapper {
+  position: sticky;
+  top: 12px;
+  z-index: 100;
+  margin: 0 1rem;
+}
+
+.chamfered-header {
+  background: var(--header-bg);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  clip-path: polygon(
+    0 0, 
+    calc(100% - 16px) 0, 
+    100% 16px, 
+    100% 100%, 
+    16px 100%, 
+    0 calc(100% - 16px)
+  );
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.brand-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: var(--text-main);
+}
+
+.brand-icon {
+  width: 34px;
+  height: 34px;
+  background: var(--brand-blue);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 1rem;
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+}
+
+.brand-title {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+.brand-subtitle {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--brand-blue);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  list-style: none;
+}
+
+.nav-link {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.nav-link:hover, .nav-link.active {
+  color: var(--brand-blue);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.theme-toggle-btn {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  padding: 0.45rem 0.85rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.theme-toggle-btn:hover {
+  border-color: var(--brand-blue);
+  color: var(--brand-blue);
+}
+
+/* ==========================================================================
+   Hero Section
+   ========================================================================== */
+.hero-section {
+  padding: 4.5rem 0 3rem;
+  text-align: center;
+  position: relative;
+}
+
+.hero-section::before {
+  content: "";
+  position: absolute;
+  top: 30%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(750px, 90vw);
+  height: 380px;
+  background: radial-gradient(ellipse at center, var(--brand-blue-glow) 0%, rgba(0, 210, 255, 0.08) 45%, transparent 75%);
+  pointer-events: none;
+  z-index: -1;
+  filter: blur(40px);
+}
+
+.hero-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: var(--bg-tag);
+  border: 1px solid var(--border-color);
+  padding: 0.4rem 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--brand-blue);
+  margin-bottom: 1.5rem;
+  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+}
+
+.hero-tag .pulse-dot {
+  width: 7px;
+  height: 7px;
+  background-color: var(--brand-green);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--brand-green);
+}
+
+.hero-headline {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 6vw, 4.25rem);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  max-width: 950px;
+  margin: 0 auto 1.25rem;
+}
+
+.hero-headline .accent {
+  color: var(--brand-blue);
+  text-shadow: 0 0 35px var(--brand-blue-glow);
+}
+
+.hero-subhead {
+  font-size: clamp(1.05rem, 2vw, 1.25rem);
+  color: var(--text-muted);
+  max-width: 750px;
+  margin: 0 auto 2.5rem;
+  line-height: 1.55;
+}
+
+/* Corporate Telemetry Ticker */
+.telemetry-strip {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1px;
+  background-color: var(--border-color); /* hairline divider trick */
+  margin-bottom: 3.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.telemetry-cell {
+  background: var(--bg-surface);
+  padding: 1.25rem 1rem;
+  text-align: left;
+}
+
+.telemetry-label {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+  margin-bottom: 0.35rem;
+}
+
+.telemetry-val {
+  font-family: var(--font-mono);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.telemetry-val.highlight {
+  color: var(--brand-blue);
+}
+
+.telemetry-val.success {
+  color: var(--brand-green);
+}
+
+/* ==========================================================================
+   Interactive Simulator Section (Alice & Bob Live Pipeline)
+   ========================================================================== */
+.simulator-panel {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  padding: 2rem;
+  margin-bottom: 4rem;
+  position: relative;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.07);
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 2rem;
+}
+
+.panel-title-group h2 {
+  font-family: var(--font-display);
+  font-size: 1.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+}
+
+.panel-title-group p {
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  margin-top: 0.2rem;
+}
+
+/* Simulator Form Inputs */
+.sim-controls {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr auto;
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 860px) {
+  .sim-controls {
+    grid-template-columns: 1fr;
+  }
+}
+
+.input-group label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  margin-bottom: 0.4rem;
+}
+
+.input-field {
+  width: 100%;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  padding: 0.65rem 0.85rem;
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+  border-radius: 4px;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.input-field:focus {
+  border-color: var(--brand-blue);
+}
+
+.btn-primary {
+  background: var(--brand-blue);
+  color: #fff;
+  border: none;
+  padding: 0.7rem 1.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  align-self: flex-end;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.25s ease;
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+}
+
+.btn-primary:hover {
+  background: var(--brand-blue-hover);
+  box-shadow: 0 4px 15px var(--brand-blue-glow);
+  transform: translateY(-1px);
+}
+
+.btn-danger {
+  background: var(--brand-red);
+  color: #fff;
+  border: none;
+  padding: 0.55rem 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.btn-danger:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+/* Architecture Flow Graph Styles */
+.flow-svg text {
+  font-family: var(--font-mono);
+  user-select: none;
+}
+.flow-svg rect {
+  transition: all 0.2s ease;
+}
+.flow-svg rect:hover {
+  filter: drop-shadow(0 0 8px var(--brand-blue-glow));
+}
+
+/* Stepper Cards */
+.pipeline-stepper {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.step-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  padding: 1.5rem;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.step-card:hover {
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
+}
+
+.step-card.active {
+  border-color: var(--brand-blue);
+  box-shadow: 0 0 20px var(--brand-blue-glow);
+}
+
+.step-badge {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--brand-blue);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.5rem;
+}
+
+.step-title {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+}
+
+.step-content {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+}
+
+.data-preview {
+  background: var(--code-bg);
+  border: 1px solid var(--border-color);
+  padding: 0.75rem;
+  margin-top: 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  overflow-x: auto;
+  border-radius: 4px;
+  color: var(--text-main);
+  max-height: 140px;
+}
+
+/* Verification Result Box */
+.verdict-banner {
+  border: 2px solid;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.verdict-banner.valid {
+  border-color: var(--brand-green);
+  background: rgba(16, 185, 129, 0.08);
+}
+
+.verdict-banner.invalid {
+  border-color: var(--brand-red);
+  background: rgba(245, 32, 39, 0.08);
+}
+
+.verdict-title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.verdict-banner.valid .verdict-title { color: var(--brand-green); }
+.verdict-banner.invalid .verdict-title { color: var(--brand-red); }
+
+.verdict-metrics {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--text-main);
+  text-align: right;
+}
+
+/* ==========================================================================
+   2D Lattice Visualizer
+   ========================================================================== */
+.visualizer-section {
+  margin-bottom: 4rem;
+}
+
+.lattice-canvas-wrapper {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  padding: 1.5rem;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+@media (max-width: 900px) {
+  .lattice-canvas-wrapper {
+    grid-template-columns: 1fr;
+  }
+}
+
+#latticeCanvas {
+  width: 100%;
+  height: 380px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-color);
+  cursor: crosshair;
+}
+
+.lattice-legend {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.lattice-legend h3 {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  color: var(--text-main);
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+.legend-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+/* ==========================================================================
+   ABTC 6-Card Architectural Pillars
+   ========================================================================== */
+.section-headline {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.section-headline .tag {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  color: var(--brand-blue);
+  letter-spacing: 0.12em;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 0.4rem;
+}
+
+.section-headline h2 {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 4vw, 2.75rem);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+}
+
+.abtc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 1px;
+  background-color: var(--border-color); /* hairline border */
+  border: 1px solid var(--border-color);
+  margin-bottom: 4rem;
+}
+
+.abtc-card {
+  background: var(--bg-surface);
+  padding: 2.5rem 2rem;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.abtc-card:hover {
+  background: var(--bg-card-hover);
+  transform: translateY(-4px);
+  box-shadow: 0 15px 30px rgba(45, 76, 255, 0.08);
+}
+
+.card-icon-svg {
+  width: 56px;
+  height: 56px;
+  margin-bottom: 1.5rem;
+  transition: transform 0.4s ease;
+}
+
+.abtc-card:hover .card-icon-svg {
+  transform: scale(1.1);
+}
+
+.card-title {
+  font-family: var(--font-sans);
+  font-size: 1.25rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 0.75rem;
+  transition: color 0.3s ease;
+}
+
+.abtc-card:hover .card-title {
+  color: var(--brand-blue);
+}
+
+.card-desc {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.card-formula {
+  margin-top: 1rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--code-bg);
+  border: 1px solid var(--border-color);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  border-radius: 4px;
+  color: var(--brand-blue);
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   Hardware Telemetry & Vivado Benchmark Table
+   ========================================================================== */
+.table-wrapper {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  padding: 1.5rem;
+  margin-bottom: 4rem;
+  overflow-x: auto;
+}
+
+.tech-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  text-align: left;
+}
+
+.tech-table th {
+  padding: 0.85rem 1rem;
+  background: var(--bg-subtle);
+  border-bottom: 2px solid var(--border-color);
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.72rem;
+}
+
+.tech-table td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-main);
+}
+
+.tech-table tr:hover td {
+  background: var(--bg-subtle);
+}
+
+.badge-chip {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  border-radius: 3px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.badge-chip.green {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--brand-green);
+  border: 1px solid var(--brand-green);
+}
+
+.badge-chip.blue {
+  background: rgba(45, 76, 255, 0.15);
+  color: var(--brand-blue);
+  border: 1px solid var(--brand-blue);
+}
+
+/* ==========================================================================
+   Footer
+   ========================================================================== */
+.site-footer {
+  border-top: 1px solid var(--border-color);
+  padding: 3rem 0;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--text-dim);
+}
+
+.footer-nav {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.footer-nav a {
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.footer-nav a:hover {
+  color: var(--brand-blue);
+}

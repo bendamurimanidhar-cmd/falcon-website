@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <title>FALCON-512 / FN-DSA — NIST FIPS 206 Post-Quantum Hardware Architecture</title>
+  <meta name="description" content="Interactive end-to-end mathematical and FPGA hardware explainer for the Falcon / FN-DSA post-quantum signature scheme (NIST FIPS 206). Emulating ABTC high-performance design language.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Live 3D Quantum Lattice Wallpaper (Background Video Effect) -->
+  <canvas id="liveWallpaperCanvas" class="live-wallpaper-canvas" aria-hidden="true"></canvas>
+  <div class="wallpaper-vignette" aria-hidden="true"></div>
+
+  <!-- Sticky Chamfered Header (ABTC Signature Style) -->
+  <div class="header-wrapper">
+    <header class="chamfered-header" role="banner">
+      <a href="#" class="brand-badge" aria-label="FALCON FN-DSA Home">
+        <div class="brand-icon">F</div>
+        <div>
+          <div class="brand-title">FALCON-512</div>
+          <div class="brand-subtitle">FN-DSA · NIST FIPS 206</div>
+        </div>
+      </a>
+
+      <nav aria-label="Primary Navigation">
+        <ul class="nav-links">
+          <li><a href="#pipeline" class="nav-link active">Protocol</a></li>
+          <li><a href="#flowchart" class="nav-link">Flow Graph</a></li>
+          <li><a href="#walkthrough" class="nav-link">Alice & Bob Story</a></li>
+          <li><a href="#lattice" class="nav-link">Lattice Visualizer</a></li>
+          <li><a href="#pornin-fpu" class="nav-link">Pornin FPU</a></li>
+          <li><a href="#architecture" class="nav-link">FPGA Architecture</a></li>
+          <li><a href="#benchmarks" class="nav-link">Benchmarks</a></li>
+        </ul>
+      </nav>
+
+      <div class="header-actions">
+        <button id="themeToggleBtn" class="theme-toggle-btn" aria-label="Toggle color theme">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <span id="themeToggleText">THEME: AUTO</span>
+        </button>
+      </div>
+    </header>
+  </div>
+
+  <main class="container">
+    <!-- Hero Section -->
+    <section class="hero-section" aria-labelledby="hero-title">
+      <div class="hero-tag">
+        <span class="pulse-dot" aria-hidden="true"></span>
+        <span>Post-Quantum Signatures Made Simple</span>
+      </div>
+      <h1 id="hero-title" class="hero-headline">
+        Falcon Explained: <span class="accent">From Seed to Verify</span>
+      </h1>
+      <p class="hero-subhead">
+        Quantum computers will soon break RSA and ECC passwords. <strong>Falcon (FN-DSA)</strong> is the new official NIST world standard built to replace them. 
+        Here is how Alice signs a message, how Bob checks it, and how it runs in real computer chips.
+      </p>
+
+      <!-- Telemetry Strip (ABTC Official Ticker Style) -->
+      <div class="telemetry-strip" role="region" aria-label="Cryptographic Telemetry">
+        <div class="telemetry-cell">
+          <div class="telemetry-label">Clock Modulus q</div>
+          <div class="telemetry-val highlight">12289</div>
+        </div>
+        <div class="telemetry-cell">
+          <div class="telemetry-label">Grid Dimensions n</div>
+          <div class="telemetry-val">512 / 1024</div>
+        </div>
+        <div class="telemetry-cell">
+          <div class="telemetry-label">Signature Size</div>
+          <div class="telemetry-val highlight">666 Bytes</div>
+        </div>
+        <div class="telemetry-cell">
+          <div class="telemetry-label">Norm Bound ⌊β²⌋</div>
+          <div class="telemetry-val">34,034,726</div>
+        </div>
+        <div class="telemetry-cell">
+          <div class="telemetry-label">NIST Test Pass Rate</div>
+          <div class="telemetry-val success">100% (82/82)</div>
+        </div>
+        <div class="telemetry-cell">
+          <div class="telemetry-label">Quantum Security</div>
+          <div class="telemetry-val">NIST Level 1 & 5</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Interactive Live Simulator Section: Alice & Bob Protocol -->
+    <section id="pipeline" class="simulator-panel" aria-labelledby="sim-title">
+      <div class="panel-header">
+        <div class="panel-title-group">
+          <h2 id="sim-title">Live Demo: Alice Sends a Signed Message to Bob</h2>
+          <p>Try it yourself! Create keys from a seed password, sign a message, send it to Bob, and test what happens when an attacker tries to tamper with it.</p>
+        </div>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-dim);">SECURITY MODE:</span>
+          <select id="presetSelect" class="input-field" style="width: auto; padding: 0.4rem 0.6rem; font-size: 0.75rem;">
+            <option value="toy8" selected>Toy 8-Grid (Easy to read numbers)</option>
+            <option value="toy4">Toy 4-Grid (Micro test)</option>
+            <option value="ref512">Falcon-512 (Official NIST Production)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Simulator Controls -->
+      <div class="sim-controls">
+        <div class="input-group">
+          <label for="seedInput">Alice's Secret Seed Password</label>
+          <input type="text" id="seedInput" class="input-field" value="falcon_alice_hw_seed_2026_q12289">
+        </div>
+        <div class="input-group">
+          <label for="msgInput">Alice's Message to Bob</label>
+          <input type="text" id="msgInput" class="input-field" value="Authorize settlement of 500,000 PQC tokens to Bob">
+        </div>
+        <div style="display: flex; gap: 0.5rem; align-items: flex-end;">
+          <button id="runPipelineBtn" class="btn-primary">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            Run Pipeline
+          </button>
+        </div>
+      </div>
+
+      <!-- Tamper Attack Playground Controls -->
+      <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; background: var(--bg-subtle); padding: 0.85rem 1rem; border: 1px solid var(--border-color); margin-bottom: 2rem; border-radius: 4px;">
+        <span style="font-family: var(--font-mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted);">Attacker Sandbox:</span>
+        <button id="tamperMsgBtn" class="btn-danger" style="font-size: 0.72rem; padding: 0.4rem 0.75rem;">
+          Tamper Message ("Send to Eve Instead")
+        </button>
+        <button id="corruptSigBtn" class="btn-danger" style="font-size: 0.72rem; padding: 0.4rem 0.75rem;">
+          Corrupt Signature (Flip 1 Bit)
+        </button>
+        <button id="restoreBtn" class="theme-toggle-btn" style="font-size: 0.72rem; padding: 0.4rem 0.75rem;">
+          Restore Original
+        </button>
+        <span id="tamperStatusLabel" style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--brand-amber); margin-left: auto;">Status: Untampered</span>
+      </div>
+
+      <!-- Stepper Visual Cards -->
+      <div class="pipeline-stepper">
+        <!-- Step 1: Alice KeyGen -->
+        <div class="step-card active" id="stepCardKeygen">
+          <div class="step-badge">Stage 01 · Key Generation</div>
+          <h3 class="step-title">The Secret Shortcut & The Public Maze</h3>
+          <p class="step-content">
+            Alice's computer turns her seed into two keys. The <strong>Secret Key</strong> is a secret shortcut through a giant multi-dimensional grid. The <strong>Public Key</strong> is the maze itself, published for everyone to see.
+          </p>
+          <div class="data-preview" id="keygenPreview">
+            <strong>Public Key h (Numbers mod 12289):</strong><br>
+            <span id="hPreview">Computing...</span>
+          </div>
+        </div>
+
+        <!-- Step 2: Alice Signs -->
+        <div class="step-card active" id="stepCardSign">
+          <div class="step-badge">Stage 02 · Signing</div>
+          <h3 class="step-title">Aiming at the Target Point</h3>
+          <p class="step-content">
+            Alice turns her message into a target point in the maze. Using her secret shortcut, she quickly finds a nearby grid point and measures a tiny distance vector (\(s_2\)). Without the secret shortcut, finding this point would take millions of years!
+          </p>
+          <div class="data-preview" id="signPreview">
+            <strong>Random Nonce Salt r:</strong> <span id="rPreview">...</span><br>
+            <strong>Signature Vector s2:</strong> <span id="s2Preview">...</span><br>
+            <strong>Size:</strong> 666 bytes (small enough for any network packet)
+          </div>
+        </div>
+
+        <!-- Step 3: Bob Verifies -->
+        <div class="step-card active" id="stepCardVerify">
+          <div class="step-badge">Stage 03 · Verification</div>
+          <h3 class="step-title">Measuring the Bullseye</h3>
+          <p class="step-content">
+            Bob receives the message and signature. Using Alice's public key, he calculates the distance from the signature to the message. If the distance is small (inside the green bullseye), Alice definitely signed it!
+          </p>
+          <div class="data-preview" id="verifyPreview">
+            <strong>Reconstructed Distance s1:</strong> <span id="s1Preview">...</span><br>
+            <strong>Calculated Distance²:</strong> <span id="normPreview">...</span><br>
+            <strong>Bullseye Limit:</strong> <span id="betaPreview">...</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Verdict Banner (ABTC High-Contrast Status Banner) -->
+      <div id="verdictBanner" class="verdict-banner valid" role="alert">
+        <div>
+          <div class="verdict-title">
+            <svg id="verdictIcon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+            <span id="verdictHeadline">VERIFIED AUTHENTIC</span>
+          </div>
+          <p id="verdictDetail" style="font-size: 0.88rem; color: var(--text-muted); margin-top: 0.35rem;">
+            Bob confirmed Alice's signature: The distance is well inside the allowable green bullseye limit.
+          </p>
+        </div>
+        <div class="verdict-metrics">
+          <div>DISTANCE: <span id="verdictNormVal" style="font-weight: 700; color: var(--brand-green);">482</span> / <span id="verdictBetaVal">814</span></div>
+          <div id="verdictProofText" style="color: var(--text-dim); font-size: 0.72rem;">GENUINE SIGNATURE CONFIRMED</div>
+        </div>
+      </div>
+
+      <!-- Explainer on Protocol Integration: Plain Signature vs. Hybrid Sign-then-Encrypt -->
+      <div style="margin-top: 2rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+        <h3 style="font-family: var(--font-display); font-size: 1.15rem; text-transform: uppercase; margin-bottom: 0.85rem;">
+          How People Use Falcon in Real Life: Plain Signatures vs. Sealed Envelopes
+        </h3>
+        <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 1rem;">
+          In real computer systems, Alice and Bob can use Falcon in two simple ways:
+        </p>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem;">
+          <div style="background: var(--bg-card); padding: 1.25rem; border: 1px solid var(--border-color); border-radius: 4px;">
+            <div style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--brand-blue); font-weight: 700; margin-bottom: 0.4rem;">OPTION 1 · PLAIN SIGNATURE</div>
+            <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 0.4rem;">Like a Signed Public Contract</div>
+            <p style="font-size: 0.82rem; color: var(--text-muted);">
+              Alice broadcasts a public message alongside her signature. Anyone on the internet can read the message, and anyone can check that Alice really wrote it. It is not private, but it is 100% authentic and impossible to forge.
+            </p>
+          </div>
+          <div style="background: var(--bg-card); padding: 1.25rem; border: 1px solid var(--border-color); border-radius: 4px;">
+            <div style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--brand-cyan); font-weight: 700; margin-bottom: 0.4rem;">OPTION 2 · SIGN-THEN-ENCRYPT</div>
+            <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 0.4rem;">Like a Signed Letter in a Sealed Lockbox</div>
+            <p style="font-size: 0.82rem; color: var(--text-muted);">
+              Alice signs her message with Falcon, then locks both the message and the signature inside a quantum-safe encrypted box (using ML-KEM / Kyber). Eavesdroppers only see gibberish; only Bob can unlock the box and verify Alice's signature.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Falcon Architecture & Protocol Flow Graph -->
+    <section id="flowchart" class="simulator-panel" aria-labelledby="flowchart-title" style="margin-bottom: 4rem;">
+      <div class="panel-header">
+        <div class="panel-title-group">
+          <span class="step-badge" style="display: inline-block; margin-bottom: 0.35rem;">VISUAL ARCHITECTURE MAP</span>
+          <h2 id="flowchart-title">Falcon End-to-End Cryptographic Flow Graph</h2>
+          <p>
+            Complete system dataflow diagram: From Alice's hardware random seed to Bob's signature acceptance and tamper blocking.
+          </p>
+        </div>
+        <div class="badge-chip blue">SYSTEM FLOW: KEYGEN → SIGN → NETWORK → VERIFY</div>
+      </div>
+
+      <!-- Flowchart SVG Container -->
+      <div style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 4px; overflow-x: auto; margin-bottom: 2rem;">
+        <svg viewBox="0 0 1200 840" width="100%" class="flow-svg" style="display: block; width: 100%; min-width: 960px; height: auto; font-family: var(--font-mono);">
+          <defs>
+            <linearGradient id="flowBlueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#2D4CFF" stop-opacity="0.9" />
+              <stop offset="100%" stop-color="#00d2ff" stop-opacity="0.9" />
+            </linearGradient>
+            <linearGradient id="flowGreenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#10b981" stop-opacity="0.9" />
+              <stop offset="100%" stop-color="#059669" stop-opacity="0.9" />
+            </linearGradient>
+            <linearGradient id="flowRedGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#f52027" stop-opacity="0.9" />
+              <stop offset="100%" stop-color="#dc2626" stop-opacity="0.9" />
+            </linearGradient>
+            <marker id="arrBlue" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#2D4CFF" />
+            </marker>
+            <marker id="arrCyan" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#00d2ff" />
+            </marker>
+            <marker id="arrGreen" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#10b981" />
+            </marker>
+            <marker id="arrRed" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#f52027" />
+            </marker>
+          </defs>
+
+          <!-- ========================================== -->
+          <!-- SWIMLANE 1: ALICE'S HARDWARE ENCLAVE       -->
+          <!-- ========================================== -->
+          <rect x="20" y="20" width="350" height="800" rx="8" fill="rgba(45, 76, 255, 0.03)" stroke="var(--border-strong)" stroke-dasharray="4 4" />
+          <rect x="35" y="32" width="320" height="34" rx="4" fill="rgba(45, 76, 255, 0.15)" stroke="rgba(45, 76, 255, 0.4)" />
+          <text x="195" y="54" fill="var(--brand-blue)" font-weight="800" font-size="12" text-anchor="middle" letter-spacing="1">ALICE: KEYGEN &amp; SIGNING ENCLAVE</text>
+
+          <!-- Subheader 1: Keygen -->
+          <rect x="35" y="90" width="320" height="24" rx="3" fill="rgba(45, 76, 255, 0.08)" />
+          <text x="195" y="106" fill="var(--brand-blue)" font-size="9.5" font-weight="700" text-anchor="middle" letter-spacing="0.5">STAGE 1: TRAPDOOR KEY GENERATION</text>
+
+          <!-- Alice Box 1: Entropy Seed -->
+          <rect x="35" y="130" width="145" height="46" rx="4" fill="var(--bg-surface)" stroke="var(--brand-blue)" />
+          <text x="107.5" y="151" fill="var(--text-main)" font-size="11" font-weight="700" text-anchor="middle">Entropy Seed</text>
+          <text x="107.5" y="166" fill="var(--text-muted)" font-size="8.5" text-anchor="middle">TRNG (32 Bytes)</text>
+
+          <!-- Arrow 1 -> 2 -->
+          <path d="M 180 153 L 203 153" fill="none" stroke="#2D4CFF" stroke-width="2" marker-end="url(#arrBlue)" />
+
+          <!-- Alice Box 2: Small f, g -->
+          <rect x="210" y="130" width="145" height="46" rx="4" fill="var(--bg-surface)" stroke="var(--brand-blue)" />
+          <text x="282.5" y="151" fill="var(--text-main)" font-size="11" font-weight="700" text-anchor="middle">Small Keys f, g</text>
+          <text x="282.5" y="166" fill="var(--text-muted)" font-size="8.5" text-anchor="middle">f, g ∈ [-15, +15] (8-bit)</text>
+
+          <!-- Arrow 2 -> 3 -->
+          <path d="M 282.5 176 L 282.5 190 L 195 190 L 195 204" fill="none" stroke="#2D4CFF" stroke-width="2" marker-end="url(#arrBlue)" />
+
+          <!-- Alice Box 3: NTRU Trapdoor Solver -->
+          <rect x="35" y="210" width="320" height="50" rx="4" fill="var(--bg-surface)" stroke="var(--brand-blue)" />
+          <text x="195" y="231" fill="var(--text-main)" font-size="11" font-weight="700" text-anchor="middle">NTRU Solver: f·G - g·F = q</text>
+          <text x="195" y="247" fill="var(--text-muted)" font-size="8.5" text-anchor="middle">Solves for secret trapdoor polynomials F, G mod 12289</text>
+
+          <!-- Arrow 3 -> 4 -->
+          <path d="M 195 260 L 195 284" fill="none" stroke="#2D4CFF" stroke-width="2" marker-end="url(#arrBlue)" />
+
+          <!-- Alice Box 4: Public Key h -->
+          <rect x="35" y="290" width="320" height="50" rx="4" fill="var(--bg-surface)" stroke="var(--brand-cyan)" stroke-width="2" />
+          <text x="195" y="311" fill="var(--brand-cyan)" font-size="11" font-weight="700" text-anchor="middle">Public Key: h = g · f⁻¹ mod q</text>
+          <text x="195" y="327" fill="var(--text-muted)" font-size="8.5" text-anchor="middle">897 Bytes (512x 14-bit coefficients mod 12289)</text>
+
+          <!-- Subheader 2: Signing -->
+          <rect x="35" y="380" width="320" height="24" rx="3" fill="rgba(45, 76, 255, 0.08)" />
+          <text x="195" y="396" fill="var(--brand-blue)" font-size="9.5" font-weight="700" text-anchor="middle" letter-spacing="0.5">STAGE 2: FAST FOURIER SIGNING</text>
+
+          <!-- Alice Box 5: Message M + Salt r -->
+          <rect x="35" y="420" width="145" height="46" rx="4" fill="var(--bg-surface)" stroke="var(--brand-blue)" />
+          <text x="107.5" y="441" fill="var(--text-main)" font-size="11" font-weight="700" text-anchor="middle">Message M + Salt r</text>
+          <text x="107.5" y="456" fill="var(--text-muted)" font-size="8.5" text-anchor="middle">r = 40B Fresh Nonce Salt</text>
+
+          <!-- Arrow 5 -> 6 -->
+          <path d="M 180 443 L 203 443" fill="none" stroke="#2D4CFF" stroke-width="2" marker-end="url(#arrBlue)" />
+
+          <!-- Alice Box 6: HashToPoint c -->
+          <rect x="210" y="420" width="145" height="46" rx="4" fill="var(--bg-surface)" stroke="var(--brand-blue)" />
+          <text x="282.5" y="441" fill="var(--text-main)" font-size="11" font-weight="700" text-anchor="middle">HashToPoint(r||M)</text>
+          <text x="282.5" y="456" fill="var(--text-muted)" font-size="8.5" text-anchor="middle">Target Vector c ∈ ℤ_q^n</text>
+
+          <!-- Arrow 6 -> 7 -->
+          <path d="M 282.5 466 L 282.5 480 L 195 480 L 195 494" fill="none" stroke="#2D4CFF" stroke-width="2" marker-end="url(#arrBlue)" />
+
+          <!-- Alice Box 7: Tree Walker & SamplerZ -->
+          <rect x="35" y="500" width="320" height="52" rx="4" fill="var(--bg-surface)" stroke="var(--brand-blue)" />
+          <text x="195" y="521" fill="var(--text-main)" font-size="11" font-weight="700" text-anchor="middle">LDL Tree Sampler (m13 FPU + m21)</text>
+          <text x="195" y="538" fill="var(--text-muted)" font-size="8.5" text-anchor="middle">Traverses Falcon tree with secret trapdoor (f,g,F,G)</text>
+
+          <!-- Arrow 7 -> 8 -->
+          <path d="M 195 552 L 195 574" fill="none" stroke="#2D4CFF" stroke-width="2" marker-end="url(#arrBlue)" />
+
+          <!-- Alice Box 8: Compressed Signature Packet -->
+          <rect x="35" y="580" width="320" height="50" rx="4" fill="var(--bg-surface)" stroke="var(--brand-cyan)" stroke-width="2" />
+          <text x="195" y="601" fill="var(--brand-cyan)" font-size="11" font-weight="700" text-anchor="middle">Signature: [0x39 || r || s₂_bits]</text>
+          <text x="195" y="617" fill="var(--text-muted)" font-size="8.5" text-anchor="middle">666 Bytes Unary Encoded (m23 Encoder)</text>
+
+
+          <!-- ========================================== -->
+          <!-- SWIMLANE 2: UNTRUSTED NETWORK CHANNEL      -->
+          <!-- ========================================== -->
+          <rect x="395" y="20" width="390" height="800" rx="8" fill="rgba(245, 158, 11, 0.03)" stroke="var(--border-strong)" stroke-dasharray="4 4" />
+          <rect x="410" y="32" width="360" height="34" rx="4" fill="rgba(245, 158, 11, 0.15)" stroke="rgba(245, 158, 11, 0.4)" />
+          <text x="590" y="54" fill="var(--brand-amber)" font-weight="800" font-size="12" text-anchor="middle" letter-spacing="1">UNTRUSTED NETWORK CHANNEL</text>
+
+          <!-- Transmission Pipe 1: Public Key Broadcast (Cyan) -->
+          <!-- Directly horizontal from Alice Box 4 (355, 304) into Bob's NTT Multiplier (830, 304) -->
+          <path d="M 355 304 L 429 304" fill="none" stroke="#00d2ff" stroke-width="2.5" stroke-dasharray="6 4" marker-end="url(#arrCyan)" />
+          <rect x="435" y="287" width="310" height="34" rx="4" fill="var(--bg-surface)" stroke="var(--brand-cyan)" stroke-width="1.5" />
+          <text x="590" y="308" fill="var(--brand-cyan)" font-size="10.5" font-weight="700" text-anchor="middle">PUBLIC KEY BROADCAST: h (897 Bytes)</text>
+          <path d="M 745 304 L 824 304" fill="none" stroke="#00d2ff" stroke-width="2.5" stroke-dasharray="6 4" marker-end="url(#arrCyan)" />
+
+          <!-- Threat Model: Adversary Eve Box -->
+          <rect x="425" y="370" width="330" height="155" rx="6" fill="var(--bg-surface)" stroke="var(--brand-red)" stroke-width="1.5" />
+          <rect x="435" y="380" width="310" height="26" rx="3" fill="rgba(245, 32, 39, 0.15)" />
+          <text x="590" y="397" fill="var(--brand-red)" font-size="10.5" font-weight="800" text-anchor="middle">THREAT MODEL: ADVERSARY EVE</text>
+          
+          <text x="445" y="423" fill="var(--text-main)" font-size="9" font-weight="700">1. Active Man-in-the-Middle Attack:</text>
+          <text x="455" y="439" fill="var(--brand-red)" font-size="8.5">• Alters message payload M: "demo" → "demO"</text>
+          <text x="455" y="453" fill="var(--brand-red)" font-size="8.5">• Or flips bits inside signature vector s₂</text>
+          
+          <text x="445" y="477" fill="var(--text-main)" font-size="9" font-weight="700">2. Falcon Mathematical Defense:</text>
+          <text x="455" y="492" fill="var(--text-muted)" font-size="8.5">• Eve lacks private trapdoor basis (f, g, F, G)</text>
+          <text x="455" y="507" fill="var(--brand-red)" font-size="8.5" font-weight="700">• Any forgery causes Euclidean norm to explode: σ &gt;&gt; ⌊β²⌋</text>
+
+          <!-- Transmission Pipe 2: Payload Packet [M, r, s2] (Blue) -->
+          <path d="M 355 605 L 429 605" fill="none" stroke="#2D4CFF" stroke-width="2.5" stroke-dasharray="6 4" marker-end="url(#arrBlue)" />
+          <rect x="435" y="588" width="310" height="34" rx="4" fill="var(--bg-surface)" stroke="var(--brand-blue)" stroke-width="1.5" />
+          <text x="590" y="609" fill="var(--brand-blue)" font-size="10.5" font-weight="700" text-anchor="middle">PAYLOAD: [M, r, s₂] (666 Bytes Signature)</text>
+
+          <!-- Route payload into Bob's upper ingest badge at y=175 -->
+          <path d="M 745 605 L 800 605 L 800 175 L 844 175" fill="none" stroke="#2D4CFF" stroke-width="2.5" stroke-dasharray="6 4" marker-end="url(#arrBlue)" />
+          <text x="795" y="410" fill="var(--brand-blue)" font-size="8" font-weight="700" transform="rotate(-90 795 410)" text-anchor="middle">Network Stream: [M, r, s₂]</text>
+
+          <!-- Eve Interception Probe (Upward from Payload into Eve) -->
+          <path d="M 590 588 L 590 531" fill="none" stroke="#f52027" stroke-width="1.5" stroke-dasharray="3 3" marker-end="url(#arrRed)" />
+          <text x="595" y="558" fill="var(--brand-red)" font-size="8" font-weight="700">Intercept Payload</text>
+
+          <!-- Eve Attack Route (Routes BELOW both verdict boxes and enters REJECTED from bottom) -->
+          <path d="M 755 450 L 780 450 L 780 715 L 1090 715 L 1090 688" fill="none" stroke="#f52027" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arrRed)" />
+          <text x="940" y="734" fill="var(--brand-red)" font-size="8.5" font-weight="700" text-anchor="middle">Tampered Attack Vector → Violates Norm Bound (σ &gt;&gt; ⌊β²⌋)</text>
+
+
+          <!-- ========================================== -->
+          <!-- SWIMLANE 3: BOB'S HARDWARE VERIFIER        -->
+          <!-- ========================================== -->
+          <rect x="810" y="20" width="370" height="800" rx="8" fill="rgba(16, 185, 129, 0.03)" stroke="var(--border-strong)" stroke-dasharray="4 4" />
+          <rect x="825" y="32" width="340" height="34" rx="4" fill="rgba(16, 185, 129, 0.15)" stroke="rgba(16, 185, 129, 0.4)" />
+          <text x="995" y="54" fill="var(--brand-green)" font-weight="800" font-size="12" text-anchor="middle" letter-spacing="1">BOB: HARDWARE VERIFIER</text>
+
+          <!-- Subheader 3: Verification -->
+          <rect x="825" y="90" width="340" height="24" rx="3" fill="rgba(16, 185, 129, 0.08)" />
+          <text x="995" y="106" fill="var(--brand-green)" font-size="9.5" font-weight="700" text-anchor="middle" letter-spacing="0.5">STAGE 3: CONSTANT-TIME VERIFICATION</text>
+
+          <!-- Ingestion Badge: Received Payload Stream -->
+          <rect x="850" y="158" width="290" height="34" rx="4" fill="var(--bg-surface)" stroke="var(--brand-blue)" stroke-width="1.5" />
+          <text x="995" y="179" fill="var(--brand-blue)" font-size="10" font-weight="700" text-anchor="middle">INGESTED PACKET: [M, r, s₂] (666B)</text>
+
+          <!-- Feeds from Ingestion Badge down to Box 1 and Box 2 -->
+          <path d="M 910 192 L 910 272" fill="none" stroke="#2D4CFF" stroke-width="2" marker-end="url(#arrBlue)" />
+          <text x="895" y="240" fill="var(--brand-blue)" font-size="8" text-anchor="end">Extract s₂</text>
+
+          <path d="M 1090 192 L 1090 272" fill="none" stroke="#2D4CFF" stroke-width="2" marker-end="url(#arrBlue)" />
+          <text x="1105" y="240" fill="var(--brand-blue)" font-size="8">Extract M, r</text>
+
+          <!-- Bob Box 1 (Left): NTT Multiplier p = s2 * h -->
+          <!-- Receives Public Key h horizontally on left edge at (830, 304), receives s2 from above at (910, 278) -->
+          <rect x="830" y="278" width="160" height="52" rx="4" fill="var(--bg-surface)" stroke="var(--brand-cyan)" stroke-width="2" />
+          <text x="910" y="299" fill="var(--brand-cyan)" font-size="10" font-weight="700" text-anchor="middle">NTT Multiplier (m3)</text>
+          <text x="910" y="315" fill="var(--text-muted)" font-size="8" text-anchor="middle">p = s₂ · h mod 12289</text>
+
+          <!-- Bob Box 2 (Right): Recompute Target c -->
+          <!-- Receives M, r from above at (1090, 278) -->
+          <rect x="1010" y="278" width="160" height="52" rx="4" fill="var(--bg-surface)" stroke="var(--brand-blue)" stroke-width="1.5" />
+          <text x="1090" y="299" fill="var(--text-main)" font-size="10" font-weight="700" text-anchor="middle">Recompute Target c</text>
+          <text x="1090" y="315" fill="var(--text-muted)" font-size="8" text-anchor="middle">HashToPoint(r||M) mod q</text>
+
+          <!-- Parallel Downward Feeds into Box 3 (Recover Difference Vector s1) -->
+          <!-- Product p feed from left box -->
+          <path d="M 910 330 L 910 364" fill="none" stroke="#00d2ff" stroke-width="2" marker-end="url(#arrCyan)" />
+          <text x="910" y="350" fill="var(--brand-cyan)" font-size="7.5" text-anchor="middle">Product p</text>
+
+          <!-- Target c feed from right box -->
+          <path d="M 1090 330 L 1090 364" fill="none" stroke="#2D4CFF" stroke-width="2" marker-end="url(#arrBlue)" />
+          <text x="1090" y="350" fill="var(--text-muted)" font-size="7.5" text-anchor="middle">Target c</text>
+
+          <!-- Bob Box 3: Recover Difference Vector s1 -->
+          <rect x="830" y="370" width="340" height="50" rx="4" fill="var(--bg-surface)" stroke="var(--brand-blue)" />
+          <text x="1000" y="391" fill="var(--text-main)" font-size="11" font-weight="700" text-anchor="middle">Recover Difference Vector s₁</text>
+          <text x="1000" y="407" fill="var(--text-muted)" font-size="8.5" text-anchor="middle">s₁ = (c - p) mod 12289 (Centered in [-6144, +6144])</text>
+
+          <!-- Arrow 3 -> 4 -->
+          <path d="M 1000 420 L 1000 444" fill="none" stroke="#2D4CFF" stroke-width="2" marker-end="url(#arrBlue)" />
+
+          <!-- Bob Box 4: Euclidean Norm Engine -->
+          <rect x="830" y="450" width="340" height="50" rx="4" fill="var(--bg-surface)" stroke="var(--brand-blue)" />
+          <text x="1000" y="471" fill="var(--text-main)" font-size="11" font-weight="700" text-anchor="middle">Euclidean Norm Engine (m26)</text>
+          <text x="1000" y="487" fill="var(--text-muted)" font-size="8.5" text-anchor="middle">Calculates Total Squared Distance: σ = ||s₁||² + ||s₂||²</text>
+
+          <!-- Arrow 4 -> Decision Diamond -->
+          <path d="M 1000 500 L 1000 529" fill="none" stroke="#2D4CFF" stroke-width="2" marker-end="url(#arrBlue)" />
+
+          <!-- Decision Diamond: Is σ <= β²? -->
+          <polygon points="1000 535, 1085 560, 1000 585, 915 560" fill="var(--bg-surface)" stroke="var(--brand-blue)" stroke-width="2" />
+          <text x="1000" y="555" fill="var(--text-main)" font-size="10" font-weight="700" text-anchor="middle">Is Distance²</text>
+          <text x="1000" y="571" fill="var(--brand-blue)" font-size="11" font-weight="800" text-anchor="middle">σ ≤ ⌊β²⌋ ?</text>
+
+          <!-- Branch 1: YES -> Accept (Green) -->
+          <path d="M 915 560 L 910 560 L 910 624" fill="none" stroke="#10b981" stroke-width="2.5" marker-end="url(#arrGreen)" />
+          <text x="895" y="595" fill="var(--brand-green)" font-size="11" font-weight="800" text-anchor="middle">YES</text>
+          <rect x="830" y="630" width="160" height="54" rx="6" fill="rgba(16, 185, 129, 0.15)" stroke="var(--brand-green)" stroke-width="2" />
+          <text x="910" y="652" fill="var(--brand-green)" font-size="11" font-weight="800" text-anchor="middle">VERIFIED</text>
+          <text x="910" y="669" fill="var(--brand-green)" font-size="8.5" text-anchor="middle">100% Authentic (σ ≤ ⌊β²⌋)</text>
+
+          <!-- Branch 2: NO -> Reject (Red) -->
+          <path d="M 1085 560 L 1090 560 L 1090 624" fill="none" stroke="#f52027" stroke-width="2.5" marker-end="url(#arrRed)" />
+          <text x="1105" y="595" fill="var(--brand-red)" font-size="11" font-weight="800" text-anchor="middle">NO</text>
+          <rect x="1010" y="630" width="160" height="54" rx="6" fill="rgba(245, 32, 39, 0.15)" stroke="var(--brand-red)" stroke-width="2" />
+          <text x="1090" y="652" fill="var(--brand-red)" font-size="11" font-weight="800" text-anchor="middle">REJECTED</text>
+          <text x="1090" y="669" fill="var(--brand-red)" font-size="8.5" text-anchor="middle">Forgery / Tamper Detected</text>
+        </svg>
+      </div>
+
+      <!-- Explanatory Architecture Step Cards (ABTC Layout) -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem;">
+        <div class="stat-card" style="border-top: 3px solid var(--brand-blue);">
+          <div class="stat-label">STAGE 01 • PRIVATE KEYGEN</div>
+          <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.4rem;">
+            Trapdoor Generation
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin: 0;">
+            Alice generates secret polynomials <span class="mono">f, g ∈ [-15, +15]</span>, solves NTRU equation <span class="mono">f·G - g·F = q</span> to find trapdoor <span class="mono">F, G</span>, and broadcasts public key <span class="mono">h = g·f⁻¹</span> (897 Bytes).
+          </p>
+        </div>
+
+        <div class="stat-card" style="border-top: 3px solid var(--brand-cyan);">
+          <div class="stat-label">STAGE 02 • GAUSSIAN SIGNING</div>
+          <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.4rem;">
+            Lattice Rounding
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin: 0;">
+            Alice hashes message <span class="mono">HashToPoint(r||M) → c</span>, navigates the LDL tree with FPU emulation, samples short vector <span class="mono">(s₁, s₂)</span>, and compresses <span class="mono">s₂</span> into a 666-byte packet.
+          </p>
+        </div>
+
+        <div class="stat-card" style="border-top: 3px solid var(--brand-amber);">
+          <div class="stat-label">STAGE 03 • UNTRUSTED CHANNEL</div>
+          <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.4rem;">
+            Threat Model &amp; Eve
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin: 0;">
+            Public key <span class="mono">h</span> and packet <span class="mono">[M, r, s₂]</span> traverse the network. If adversary Eve alters even 1 bit of the message or signature, she cannot forge a valid vector without trapdoor basis <span class="mono">(f,g,F,G)</span>.
+          </p>
+        </div>
+
+        <div class="stat-card" style="border-top: 3px solid var(--brand-green);">
+          <div class="stat-label">STAGE 04 • HARDWARE VERIFY</div>
+          <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.4rem;">
+            Euclidean Norm Bound
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin: 0;">
+            Bob multiplies <span class="mono">p = s₂·h</span> in 60k cycles, recovers <span class="mono">s₁ = c - p</span>, and squares all coefficients. If <span class="mono">σ ≤ 34,034,726</span>, the signature is 100% genuine; otherwise, it is instantly rejected.
+          </p>
+        </div>
+      </div>
+    </section>
+    <section id="walkthrough" class="simulator-panel" aria-labelledby="walkthrough-title" style="margin-bottom: 4rem;">
+      <div class="panel-header">
+        <div class="panel-title-group">
+          <span class="step-badge" style="display: inline-block; margin-bottom: 0.35rem;">COMPLETE STEP-BY-STEP EXAMPLE</span>
+          <h2 id="walkthrough-title">Alice & Bob: The Whole Math Story with Real Numbers</h2>
+          <p>
+            Alice wants to send a chat message to Bob over an unsecure network. Here is every mathematical equation, coefficient, and bit-width that executes from start to finish.
+          </p>
+        </div>
+        <div class="badge-chip blue">PEDAGOGICAL PARAMETER SET: n = 8, q = 12289</div>
+      </div>
+
+      <!-- Unit Parameters & Bit-Width Reference Table -->
+      <div style="margin-bottom: 2.5rem;">
+        <h3 style="font-family: var(--font-display); font-size: 1.15rem; text-transform: uppercase; margin-bottom: 0.85rem;">
+          1. Falcon Cryptographic Unit Parameters & Bit-Widths
+        </h3>
+        <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.5;">
+          Every number inside Falcon has an exact bit-width and range. Here is the complete breakdown across key generation, messages, and signatures:
+        </p>
+
+        <div class="table-wrapper" style="margin-bottom: 1.5rem;">
+          <table class="tech-table">
+            <thead>
+              <tr>
+                <th>Cryptographic Element</th>
+                <th>Symbol</th>
+                <th>Coefficients (n)</th>
+                <th>Bits per Coefficient</th>
+                <th>Total Size</th>
+                <th>Value Range</th>
+                <th>Purpose & Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Clock Modulus</strong></td>
+                <td><code>q</code></td>
+                <td>1 scalar</td>
+                <td>14 bits</td>
+                <td>14 bits</td>
+                <td>Fixed: <code>12289</code></td>
+                <td>The prime clock number. All coefficients wrap around this modulus.</td>
+              </tr>
+              <tr>
+                <td><strong>Random Seed Password</strong></td>
+                <td><code>seed</code></td>
+                <td>Arbitrary</td>
+                <td>8 bits (bytes)</td>
+                <td>32 to 64 Bytes</td>
+                <td>Random bytes</td>
+                <td>Alice's secret random entropy string from her hardware true random number generator (TRNG).</td>
+              </tr>
+              <tr>
+                <td><strong>Secret Key (Small)</strong></td>
+                <td><code>f, g</code></td>
+                <td>512 (or 8)</td>
+                <td>8-bit signed</td>
+                <td>512 Bytes each</td>
+                <td>Small: \([-15, +15]\)</td>
+                <td>Alice's private shortcuts. Kept secret forever; never leaves Alice's chip.</td>
+              </tr>
+              <tr>
+                <td><strong>Secret Key (Large Trapdoor)</strong></td>
+                <td><code>F, G</code></td>
+                <td>512 (or 8)</td>
+                <td>16-bit signed</td>
+                <td>1024 Bytes each</td>
+                <td>\([-6144, +6144]\)</td>
+                <td>The NTRU trapdoor polynomials satisfying \(fG - gF = q\). Kept secret.</td>
+              </tr>
+              <tr>
+                <td><strong>Public Key</strong></td>
+                <td><code>h</code></td>
+                <td>512 (or 8)</td>
+                <td><strong>14 bits</strong> unsigned</td>
+                <td><strong>897 Bytes</strong> (incl. header)</td>
+                <td>\([0, 12288]\)</td>
+                <td>Computed as \(h = g \cdot f^{-1} \pmod q\). Published openly for Bob to see.</td>
+              </tr>
+              <tr>
+                <td><strong>Plaintext Message</strong></td>
+                <td><code>M</code></td>
+                <td>Arbitrary length</td>
+                <td>8 bits (bytes)</td>
+                <td>e.g. 15 Bytes</td>
+                <td>UTF-8 / ASCII text</td>
+                <td>The chat message Alice wants to send (e.g. <code>"Falcon toy demo"</code>).</td>
+              </tr>
+              <tr>
+                <td><strong>Random Nonce Salt</strong></td>
+                <td><code>r</code></td>
+                <td>320 bits</td>
+                <td>8 bits (bytes)</td>
+                <td><strong>40 Bytes</strong></td>
+                <td>Hex string (80 hex chars)</td>
+                <td>Fresh random salt generated for each signature so identical messages look completely different.</td>
+              </tr>
+              <tr>
+                <td><strong>Target Hash Point</strong></td>
+                <td><code>c</code></td>
+                <td>512 (or 8)</td>
+                <td><strong>14 bits</strong> unsigned</td>
+                <td>7168 bits</td>
+                <td>\([0, 12288]\)</td>
+                <td>Created by SHAKE-256 hash: \(c = \text{HashToPoint}(r \parallel M)\).</td>
+              </tr>
+              <tr>
+                <td><strong>Signature Vector</strong></td>
+                <td><code>s2</code></td>
+                <td>512 (or 8)</td>
+                <td>Variable (7 low + unary)</td>
+                <td>~626 Bytes encoded</td>
+                <td>\([-2047, +2047]\)</td>
+                <td>The mathematical signature vector Alice transmits to Bob.</td>
+              </tr>
+              <tr>
+                <td><strong>Final Signature Packet</strong></td>
+                <td><code>sig</code></td>
+                <td>1 packet</td>
+                <td>—</td>
+                <td><strong>666 Bytes</strong> (Falcon-512)</td>
+                <td><code>0x39 || r || s2_bits</code></td>
+                <td>1-byte header + 40-byte salt \(r\) + compressed bitstream of \(s_2\).</td>
+              </tr>
+              <tr>
+                <td><strong>Bullseye Bound</strong></td>
+                <td><code>⌊β²⌋</code></td>
+                <td>1 scalar threshold</td>
+                <td>26 bits</td>
+                <td>4 Bytes</td>
+                <td><code>34,034,726</code> (512)</td>
+                <td>The squared distance limit. Any signature exceeding this is rejected as a fake!</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- The 4 Acts of Alice & Bob -->
+      <div>
+        <h3 style="font-family: var(--font-display); font-size: 1.15rem; text-transform: uppercase; margin-bottom: 1.25rem;">
+          2. The Mathematical Walkthrough: Alice Signs & Bob Verifies
+        </h3>
+
+        <!-- Act 1 -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 1.5rem; margin-bottom: 1.5rem; border-radius: 4px;">
+          <div style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--brand-blue); font-weight: 700; margin-bottom: 0.35rem;">
+            ACT 1 · ALICE CREATES HER KEYS (KEYGEN)
+          </div>
+          <h4 style="font-family: var(--font-display); font-size: 1.15rem; text-transform: uppercase; margin-bottom: 0.75rem;">
+            Solving the NTRU Equation: f·G - g·F = 12289
+          </h4>
+          <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 0.85rem;">
+            Alice rolls random dice to generate two tiny secret polynomials with small 8-bit coefficients:
+          </p>
+          <div class="data-preview" style="margin-bottom: 0.85rem;">
+            f = [-26, -7, -32, -7, -1, -38, 38, -23]<br>
+            g = [-36, 25, 8, 15, 75, -12, 17, 39]
+          </div>
+          <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 0.85rem;">
+            Using the extended Euclidean algorithm, Alice's computer finds large partner polynomials \(F\) and \(G\) that satisfy the famous NTRU equation:
+          </p>
+          <div class="data-preview" style="margin-bottom: 0.85rem;">
+            F = [83, 24, 0, -74, 82, 32, 38, 28]<br>
+            G = [14, 16, -6, -13, 19, 36, -3, -10]<br>
+            Math Check: f·G - g·F = [12289, 0, 0, 0, 0, 0, 0, 0] ≡ 12289 (Exact match!)
+          </div>
+          <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 0.85rem;">
+            Finally, Alice computes her <strong>Public Key</strong> \(h = g \cdot f^{-1} \pmod{12289}\) using fast NTT multiplication:
+          </p>
+          <div class="data-preview">
+            Public Key h = [3178, 7201, 3796, 8969, 1583, 2472, 1521, 8339] (8 numbers, 14-bits each)
+          </div>
+          <p style="font-size: 0.82rem; color: var(--text-dim); margin-top: 0.5rem;">
+            Alice uploads \(h\) to her public directory. She stores \(\{f, g, F, G\}\) secretly inside her private hardware enclave.
+          </p>
+        </div>
+
+        <!-- Act 2 -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 1.5rem; margin-bottom: 1.5rem; border-radius: 4px;">
+          <div style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--brand-cyan); font-weight: 700; margin-bottom: 0.35rem;">
+            ACT 2 · ALICE SIGNS HER CHAT MESSAGE (SIGN)
+          </div>
+          <h4 style="font-family: var(--font-display); font-size: 1.15rem; text-transform: uppercase; margin-bottom: 0.75rem;">
+            Target Point c & Fast Fourier LDL Sampling
+          </h4>
+          <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 0.85rem;">
+            Alice types her chat message: <code>M = "Falcon toy demo"</code>. Her computer generates a 40-byte random nonce salt:
+          </p>
+          <div class="data-preview" style="margin-bottom: 0.85rem;">
+            Salt r = "19cb644de108a284692a2fe6f27881f3fcd037f5152d9a1275d057e97c9343cff064ff057f24a4bc" (40 Bytes / 320 bits)
+          </div>
+          <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 0.85rem;">
+            Alice hashes \(r \parallel M\) using SHAKE-256 (<code>HashToPoint</code>) to yield target vector \(c\):
+          </p>
+          <div class="data-preview" style="margin-bottom: 0.85rem;">
+            Target Point c = [8984, 7047, 6563, 4376, 6769, 5373, 11990, 6291] (All numbers mod 12289)
+          </div>
+          <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 0.85rem;">
+            Using her secret trapdoor \(\{f, g, F, G\}\), Alice computes the continuous target coordinates \((t_0, t_1) = (-c F / q, \, c f / q)\):
+          </p>
+          <div class="data-preview" style="margin-bottom: 0.85rem;">
+            t0 = [ 12.17, -55.38,  28.93, 116.96,  -6.08, -33.63, -140.71, -113.69]<br>
+            t1 = [ 25.84,  23.30, -32.86,  -2.82, -46.22, -55.72,  -31.32,  -53.66]
+          </div>
+          <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 0.85rem;">
+            Alice's chip passes \((t_0, t_1)\) through the <code>m21_samplerz</code> Gaussian randomizer to sample integers \((z_0, z_1)\), and constructs signature vector \(s_2 = z_0 f + z_1 F \pmod{12289}\):
+          </p>
+          <div class="data-preview">
+            Signature Vector s2 = [-227, -138, -86, -106, 24, -101, -89, 137]
+          </div>
+          <p style="font-size: 0.82rem; color: var(--text-dim); margin-top: 0.5rem;">
+            Alice packages \(\{M, r, s_2\}\) and sends it over the internet to Bob.
+          </p>
+        </div>
+
+        <!-- Act 3 -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 1.5rem; margin-bottom: 1.5rem; border-radius: 4px;">
+          <div style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--brand-green); font-weight: 700; margin-bottom: 0.35rem;">
+            ACT 3 · BOB VERIFIES ALICE'S SIGNATURE (VERIFY)
+          </div>
+          <h4 style="font-family: var(--font-display); font-size: 1.15rem; text-transform: uppercase; margin-bottom: 0.75rem;">
+            Distance Check: ||(s1, s2)||² ≤ 463,174
+          </h4>
+          <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 0.85rem;">
+            Bob receives the chat message <code>M = "Falcon toy demo"</code>, salt \(r\), and signature \(s_2\). Bob does NOT know Alice's secret key! He only has Alice's public key \(h\).
+          </p>
+          <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 0.85rem;">
+            <strong>Step 1:</strong> Bob recomputes target \(c = \text{HashToPoint}(r \parallel M)\):
+          </p>
+          <div class="data-preview" style="margin-bottom: 0.85rem;">
+            c = [8984, 7047, 6563, 4376, 6769, 5373, 11990, 6291]
+          </div>
+          <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 0.85rem;">
+            <strong>Step 2:</strong> Bob multiplies \(p = s_2 \cdot h \pmod{x^8 + 1} \pmod{12289}\) using fast NTT:
+          </p>
+          <div class="data-preview" style="margin-bottom: 0.85rem;">
+            p = [9122, 7296, 6495, 4467, 6920, 5324, 11720, 6453]
+          </div>
+          <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 0.85rem;">
+            <strong>Step 3:</strong> Bob recovers \(s_1 = (c - p) \pmod{12289}\), centered into the range \([-6144, +6144]\):
+          </p>
+          <div class="data-preview" style="margin-bottom: 0.85rem;">
+            s1[0] = 8984 - 9122 = -138<br>
+            s1[1] = 7047 - 7296 = -249<br>
+            s1[2] = 6563 - 6495 = 68<br>
+            s1[3] = 4376 - 4467 = -91<br>
+            s1[4] = 6769 - 6920 = -151<br>
+            s1[5] = 5373 - 5324 = 49<br>
+            s1[6] = 11990 - 11720 = 270<br>
+            s1[7] = 6291 - 6453 = -162<br>
+            Reconstructed s1 = [-138, -249, 68, -91, -151, 49, 270, -162]
+          </div>
+          <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 0.85rem;">
+            <strong>Step 4:</strong> Bob computes the total squared Euclidean distance:
+          </p>
+          <div class="data-preview">
+            ||s1||² = (-138)² + (-249)² + 68² + (-91)² + (-151)² + 49² + 270² + (-162)² = 218,295<br>
+            ||s2||² = (-227)² + (-138)² + (-86)² + (-106)² + 24² + (-101)² + (-89)² + 137² = 126,673<br>
+            Total Distance² σ = 218,295 + 126,673 = 344,968<br>
+            Bullseye Threshold ⌊β²⌋ = 463,174<br>
+            Verdict: 344,968 ≤ 463,174 → VERIFIED AUTHENTIC! (Bob accepts!)
+          </div>
+        </div>
+
+        <!-- Act 4 -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 4px;">
+          <div style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--brand-red); font-weight: 700; margin-bottom: 0.35rem;">
+            ACT 4 · ATTACKER EVE INTERCEPTS & TAMPERS (BLOWUP DEMO)
+          </div>
+          <h4 style="font-family: var(--font-display); font-size: 1.15rem; text-transform: uppercase; margin-bottom: 0.75rem;">
+            Eve Changes 1 Letter: Distance Explodes 240x!
+          </h4>
+          <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 0.85rem;">
+            Suppose an adversary Eve intercepts the transmission and alters just a single letter, changing <code>"Falcon toy demo"</code> to <code>"Falcon toy demO"</code> (lowercase 'o' to uppercase 'O').
+          </p>
+          <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 0.85rem;">
+            Because SHAKE-256 has the avalanche effect, changing one letter produces a wildly different target point \(c_{\text{fake}}\):
+          </p>
+          <div class="data-preview" style="margin-bottom: 0.85rem;">
+            c_fake = [4292, 199, 11775, 9100, 8601, 3333, 9900, 5373] (Completely uncorrelated!)
+          </div>
+          <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 0.85rem;">
+            Bob calculates \(s_1 = (c_{\text{fake}} - p) \pmod{12289}\):
+          </p>
+          <div class="data-preview" style="margin-bottom: 0.85rem;">
+            s1[0] = 4292 - 9122 = -4830 (Blew up from -138!)<br>
+            s1[1] = 199 - 7296 = -7097 ≡ +5192 (Blew up from -249!)<br>
+            s1[2] = 11775 - 6495 = +5280 (Blew up from 68!)<br>
+            Reconstructed fake s1 = [-4830, 5192, 5280, 4633, 1681, -1991, -1820, -1080]
+          </div>
+          <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 0.85rem;">
+            Bob computes the distance squared:
+          </p>
+          <div class="data-preview">
+            ||s1_fake||² = (-4830)² + 5192² + 5280² + 4633² + 1681² + (-1991)² + (-1820)² + (-1080)² = 110,897,495<br>
+            Total Distance² σ = 110,897,495 + 126,672 = 111,024,167<br>
+            Bullseye Threshold ⌊β²⌋ = 463,174<br>
+            Verdict: 111,024,167 &gt;&gt; 463,174 (240x LIMIT BLOWUP!) → REJECTED: FAKE DETECTED!
+          </div>
+          <p style="font-size: 0.82rem; color: var(--text-dim); margin-top: 0.5rem;">
+            Bob immediately blocks the packet and sounds the alarm. Even with a quantum supercomputer, Eve cannot produce a valid signature without Alice's secret key!
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2D Lattice Geometry Visualizer -->
+    <section id="lattice" class="visualizer-section" aria-labelledby="lattice-title">
+      <div class="section-headline">
+        <span class="tag">Visual Intuition</span>
+        <h2 id="lattice-title">The Bullseye & The Secret Grid</h2>
+      </div>
+
+      <div class="lattice-canvas-wrapper">
+        <div>
+          <canvas id="latticeCanvas" width="700" height="380" aria-label="Interactive 2D lattice coordinate plane"></canvas>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.75rem;">
+            <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-dim);">
+              Click anywhere on the grid to move the target point (message). Watch the distance recalculate live!
+            </span>
+            <button id="resetCanvasBtn" class="theme-toggle-btn" style="font-size: 0.72rem; padding: 0.3rem 0.6rem;">
+              Center View
+            </button>
+          </div>
+        </div>
+
+        <div class="lattice-legend">
+          <h3>How Lattice Security Works</h3>
+          <p style="margin-bottom: 1rem; font-size: 0.85rem; line-height: 1.5;">
+            Think of signing a message like throwing a dart at a dartboard. 
+            Alice has a secret straight ruler that lets her find the closest bullseye in a microsecond. 
+            An attacker only has a warped, twisted ruler that makes finding the bullseye practically impossible!
+          </p>
+
+          <div class="legend-item">
+            <span class="legend-swatch" style="background: #2D4CFF;"></span>
+            <span>Alice's Secret Grid (Clean, straight shortcut)</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-swatch" style="background: #f52027;"></span>
+            <span>The Public Grid (Warped and twisted for attackers)</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-swatch" style="background: #00d2ff;"></span>
+            <span>Target Point c (Where the message landed)</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-swatch" style="background: #10b981;"></span>
+            <span>The Green Bullseye (Allowable distance limit)</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-swatch" style="background: #f59e0b;"></span>
+            <span>Alice's Signature Point (Lands safely inside bullseye)</span>
+          </div>
+
+          <div style="margin-top: 1.25rem; padding: 0.75rem; background: var(--code-bg); border-left: 3px solid var(--brand-blue); font-size: 0.78rem;">
+            <strong>Why add random noise?</strong> If Alice always picked the exact nearest grid point, a smart attacker watching 10,000 signatures could figure out her secret key. Falcon adds a tiny bit of random noise (like a gentle breeze) so her secret shortcut remains 100% hidden!
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Deep Dive: Thomas Pornin Arithmetic Breakdown -->
+    <section id="pornin-fpu" class="simulator-panel" aria-labelledby="fpu-title" style="margin-bottom: 4rem;">
+      <div class="panel-header">
+        <div class="panel-title-group">
+          <h2 id="fpu-title">The Big Chip Problem: Why Normal Math Failed</h2>
+          <p>How Thomas Pornin solved Falcon's math using plain integers, and how our hardware design split it across 6 chip multipliers.</p>
+        </div>
+        <div class="badge-chip blue">CHIP MODULE: m13_fpu64.sv</div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+        <!-- Column 1: The Fixed-Point Failure -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 1.75rem; border-radius: 4px;">
+          <div style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--brand-red); font-weight: 700; margin-bottom: 0.5rem; text-transform: uppercase;">
+            PROBLEM 1 · THE WOODEN RULER
+          </div>
+          <h3 style="font-family: var(--font-display); font-size: 1.2rem; text-transform: uppercase; margin-bottom: 0.75rem;">
+            Why Fixed-Point Math Failed
+          </h3>
+          <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 1rem;">
+            Imagine trying to measure the distance to the moon and the thickness of a human hair with the same wooden ruler!
+          </p>
+          <ul style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; padding-left: 1.2rem; margin-bottom: 1rem;">
+            <li><strong>Crazy Number Range:</strong> Falcon calculates numbers that are both astronomically huge and unimaginably tiny.</li>
+            <li><strong>Rounding to Zero:</strong> Standard fixed-point decimals rounded the tiny numbers down to zero, causing math errors and crashes.</li>
+            <li><strong>Security Broken:</strong> Trying to fix this by adjusting the scale on the fly ruined the mathematical security proofs.</li>
+          </ul>
+        </div>
+
+        <!-- Column 2: Pornin's Constant-Time Solution -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 1.75rem; border-radius: 4px;">
+          <div style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--brand-blue); font-weight: 700; margin-bottom: 0.5rem; text-transform: uppercase;">
+            PROBLEM 2 · THE STOPWATCH SPY
+          </div>
+          <h3 style="font-family: var(--font-display); font-size: 1.2rem; text-transform: uppercase; margin-bottom: 0.75rem;">
+            Pornin's Constant-Time Fix (fpr)
+          </h3>
+          <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 1rem;">
+            Normal computer chips calculate strange numbers slightly slower. Hackers with a stopwatch can time those microsecond delays to steal secret keys!
+          </p>
+          <ul style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; padding-left: 1.2rem; margin-bottom: 1rem;">
+            <li><strong>Plain Whole Numbers:</strong> Pornin packed 64-bit decimal numbers into standard integers (<code>uint64_t</code>).</li>
+            <li><strong>No 'If-Else' Decisions:</strong> The math uses only bitwise operations with zero conditional branches.</li>
+            <li><strong>Clock-Locked Speed:</strong> It takes the exact same number of clock ticks every single time. No stopwatch can spy on it!</li>
+          </ul>
+        </div>
+
+        <!-- Column 3: The 6-DSP48E2 Hardware Decomposition -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 1.75rem; border-radius: 4px;">
+          <div style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--brand-green); font-weight: 700; margin-bottom: 0.5rem; text-transform: uppercase;">
+            OUR SILICON CHIP SOLUTION
+          </div>
+          <h3 style="font-family: var(--font-display); font-size: 1.2rem; text-transform: uppercase; margin-bottom: 0.75rem;">
+            6 Multipliers in 5 Clock Ticks
+          </h3>
+          <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 0.75rem;">
+            How do we multiply giant 53-bit numbers on a real FPGA chip without building a giant, hot circuit? We split the math formula:
+          </p>
+          <div class="card-formula" style="font-size: 0.72rem; margin-bottom: 0.75rem;">
+            P = 2¹⁰⁴ + 2⁵²(m_a + m_b) + m_a · m_b
+          </div>
+          <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.5;">
+            By cutting the numbers into 3 pieces each, <strong>exactly 6 small hardware multipliers</strong> (DSP48E2 slices) do the whole job in just 5 clock cycles!
+          </p>
+        </div>
+      </div>
+
+      <!-- Interactive Bit Decomposition Widget -->
+      <div style="background: var(--bg-subtle); border: 1px solid var(--border-color); padding: 1.25rem 1.5rem; border-radius: 4px;">
+        <h4 style="font-family: var(--font-mono); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.75rem; color: var(--text-main);">
+          Live Hardware Multiplier Calculator
+        </h4>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; align-items: center;">
+          <div>
+            <label style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; display: block; margin-bottom: 0.3rem;">Number A (13-digit Hex)</label>
+            <input type="text" id="mantissaA" class="input-field" value="0x1F4A0B2C3D4E5" style="font-size: 0.8rem;">
+          </div>
+          <div>
+            <label style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; display: block; margin-bottom: 0.3rem;">Number B (13-digit Hex)</label>
+            <input type="text" id="mantissaB" class="input-field" value="0x180E2F3A4B5C6" style="font-size: 0.8rem;">
+          </div>
+          <div>
+            <label style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; display: block; margin-bottom: 0.3rem;">Hardware Allocation</label>
+            <div style="font-family: var(--font-mono); font-size: 0.82rem; color: var(--brand-blue); font-weight: 700; padding-top: 0.5rem;">
+              6x DSP48E2 Multipliers @ 5 Clock Cycles
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ABTC 6-Card Architecture Pillars -->
+    <section id="architecture" aria-labelledby="arch-title">
+      <div class="section-headline">
+        <span class="tag">Chip Architecture</span>
+        <h2 id="arch-title">The 6 Pillars of the Falcon Silicon Core</h2>
+      </div>
+
+      <div class="abtc-grid">
+        <!-- Card 1 -->
+        <article class="abtc-card">
+          <svg class="card-icon-svg" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="8" y="8" width="48" height="48" rx="4" stroke="var(--brand-blue)" />
+            <line x1="8" y1="24" x2="56" y2="24" stroke="var(--border-strong)" />
+            <line x1="8" y1="40" x2="56" y2="40" stroke="var(--border-strong)" />
+            <line x1="24" y1="8" x2="24" y2="56" stroke="var(--border-strong)" />
+            <line x1="40" y1="8" x2="40" y2="56" stroke="var(--border-strong)" />
+            <circle cx="24" cy="24" r="3" fill="var(--brand-blue)" />
+            <circle cx="40" cy="40" r="3" fill="var(--brand-cyan)" />
+          </svg>
+          <h3 class="card-title">01 · High-Dimensional Grid (Lattice)</h3>
+          <p class="card-desc">
+            All math lives inside a 512-dimensional grid of numbers wrapped around clock modulus 12289. Finding shortcuts through this grid is easy for Alice, but mathematically impossible for any supercomputer or quantum machine.
+          </p>
+          <div class="card-formula">
+            f·G - g·F ≡ 12289 (mod xⁿ + 1)
+          </div>
+        </article>
+
+        <!-- Card 2 -->
+        <article class="abtc-card">
+          <svg class="card-icon-svg" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M6 50 Q 20 50, 32 14 T 58 50" stroke="var(--brand-blue)" fill="none" />
+            <line x1="6" y1="50" x2="58" y2="50" stroke="var(--border-strong)" />
+            <circle cx="32" cy="14" r="4" fill="var(--brand-cyan)" />
+            <line x1="32" y1="14" x2="32" y2="50" stroke="var(--brand-blue)" stroke-dasharray="3 3" />
+          </svg>
+          <h3 class="card-title">02 · Random Noise Engine (SamplerZ)</h3>
+          <p class="card-desc">
+            Adds gentle, random bell-curve noise to every signature. This creates a protective fog that stops hackers from studying thousands of Alice's signatures to reverse-engineer her private key.
+          </p>
+          <div class="card-formula">
+            Bell Curve Randomizer in Silicon
+          </div>
+        </article>
+
+        <!-- Card 3 -->
+        <article class="abtc-card">
+          <svg class="card-icon-svg" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="12" y="14" width="40" height="36" rx="2" stroke="var(--brand-blue)" />
+            <path d="M20 26 H44 M20 34 H36 M20 42 H40" stroke="var(--brand-cyan)" />
+            <circle cx="48" cy="42" r="2" fill="var(--brand-blue)" />
+          </svg>
+          <h3 class="card-title">03 · Clock-Locked Math Engine (FPU)</h3>
+          <p class="card-desc">
+            A custom 64-bit math processor in <code>m13_fpu64.sv</code> with zero conditional branches. It always finishes in the exact same number of clock ticks, making it 100% immune to stopwatch timing attacks.
+          </p>
+          <div class="card-formula">
+            6 Multipliers @ Fixed 5-Cycle Latency
+          </div>
+        </article>
+
+        <!-- Card 4 -->
+        <article class="abtc-card">
+          <svg class="card-icon-svg" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="10" y="10" width="44" height="18" stroke="var(--brand-blue)" />
+            <rect x="10" y="36" width="44" height="18" stroke="var(--brand-cyan)" />
+            <line x1="22" y1="28" x2="22" y2="36" stroke="var(--border-strong)" />
+            <line x1="42" y1="28" x2="42" y2="36" stroke="var(--border-strong)" />
+          </svg>
+          <h3 class="card-title">04 · Traffic Controller RAM (Scoreboard)</h3>
+          <p class="card-desc">
+            An intelligent memory coordinator in <code>m14_vram.sv</code> that tracks data dependencies. It stops data collisions and pipeline stalls when reading and writing chip memory at high speeds.
+          </p>
+          <div class="card-formula">
+            Zero-Stall Dual-Port RAM Controller
+          </div>
+        </article>
+
+        <!-- Card 5 -->
+        <article class="abtc-card">
+          <svg class="card-icon-svg" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="32" cy="14" r="6" stroke="var(--brand-blue)" />
+            <circle cx="18" cy="34" r="6" stroke="var(--brand-cyan)" />
+            <circle cx="46" cy="34" r="6" stroke="var(--brand-cyan)" />
+            <circle cx="10" cy="52" r="4" stroke="var(--border-strong)" />
+            <circle cx="26" cy="52" r="4" stroke="var(--border-strong)" />
+            <line x1="28" y1="18" x2="22" y2="30" stroke="var(--brand-blue)" />
+            <line x1="36" y1="18" x2="42" y2="30" stroke="var(--brand-blue)" />
+            <line x1="16" y1="39" x2="12" y2="48" stroke="var(--border-strong)" />
+            <line x1="20" y1="39" x2="24" y2="48" stroke="var(--border-strong)" />
+          </svg>
+          <h3 class="card-title">05 · Smart Tree Walker (Memory Saver)</h3>
+          <p class="card-desc">
+            A microcoded sequencer that climbs Falcon's mathematical tree step-by-step as needed. This saves over 120 expensive chip memory blocks by streaming nodes instead of storing the entire tree at once.
+          </p>
+          <div class="card-formula">
+            Streaming Tree Sequencer
+          </div>
+        </article>
+
+        <!-- Card 6 -->
+        <article class="abtc-card">
+          <svg class="card-icon-svg" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="32 10 52 24 52 46 32 58 12 46 12 24" stroke="var(--brand-blue)" />
+            <line x1="12" y1="24" x2="52" y2="46" stroke="var(--brand-cyan)" />
+            <line x1="52" y1="24" x2="12" y2="46" stroke="var(--brand-cyan)" />
+          </svg>
+          <h3 class="card-title">06 · Supercharged Multiplier (NTT)</h3>
+          <p class="card-desc">
+            The math equivalent of high-speed fiber optics. It converts massive polynomial multiplications into instant point-by-point operations, speeding up signature verification by more than 100x.
+          </p>
+          <div class="card-formula">
+            O(n log n) Fast Butterfly Math
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- Vivado Hardware Resource & Benchmark Table -->
+    <section id="benchmarks" aria-labelledby="bench-title">
+      <div class="section-headline">
+        <span class="tag">Real Hardware Verification</span>
+        <h2 id="bench-title">AMD Xilinx ZCU104 Chip Test Results</h2>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="tech-table" aria-label="FPGA Hardware Benchmarks">
+          <thead>
+            <tr>
+              <th>Module Identifier</th>
+              <th>Hardware Function</th>
+              <th>LUTs</th>
+              <th>Registers (FF)</th>
+              <th>BRAM (36Kb)</th>
+              <th>DSP48E2</th>
+              <th>Verilator KAT Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>m1_shake256</code></td>
+              <td>Keccak-p[1600] Sponge Core</td>
+              <td>2,840</td>
+              <td>1,640</td>
+              <td>0</td>
+              <td>0</td>
+              <td><span class="badge-chip green">100% PASS</span></td>
+            </tr>
+            <tr>
+              <td><code>m13_fpu64</code></td>
+              <td>Pornin Constant-Time Float FPU</td>
+              <td>4,120</td>
+              <td>2,980</td>
+              <td>0</td>
+              <td>6</td>
+              <td><span class="badge-chip green">592,072 OPS PASS</span></td>
+            </tr>
+            <tr>
+              <td><code>m14_vram</code></td>
+              <td>Scoreboard Dual-Port Memory Interlock</td>
+              <td>1,450</td>
+              <td>1,120</td>
+              <td>8</td>
+              <td>0</td>
+              <td><span class="badge-chip green">PASS</span></td>
+            </tr>
+            <tr>
+              <td><code>m16_treewalker</code></td>
+              <td>Falcon LDL Tree Sequencer</td>
+              <td>3,210</td>
+              <td>2,450</td>
+              <td>12</td>
+              <td>0</td>
+              <td><span class="badge-chip green">PASS</span></td>
+            </tr>
+            <tr>
+              <td><code>m19_chacha20</code></td>
+              <td>PRNG Entropy Expander</td>
+              <td>1,890</td>
+              <td>1,240</td>
+              <td>0</td>
+              <td>0</td>
+              <td><span class="badge-chip green">PASS</span></td>
+            </tr>
+            <tr>
+              <td><code>m21_samplerz</code></td>
+              <td>Discrete Gaussian CDT Sampler</td>
+              <td>3,650</td>
+              <td>2,810</td>
+              <td>4</td>
+              <td>2</td>
+              <td><span class="badge-chip green">PASS</span></td>
+            </tr>
+            <tr>
+              <td><code>m23_compress</code></td>
+              <td>Unary/Golomb Signature Encoder</td>
+              <td>890</td>
+              <td>640</td>
+              <td>0</td>
+              <td>0</td>
+              <td><span class="badge-chip green">PASS</span></td>
+            </tr>
+            <tr>
+              <td><code>m24_sign_top</code></td>
+              <td><strong>Full Falcon-512 Signing Engine</strong></td>
+              <td><strong>28,450</strong></td>
+              <td><strong>21,800</strong></td>
+              <td><strong>34</strong></td>
+              <td><strong>18</strong></td>
+              <td><span class="badge-chip green">12/12 KAT EXACT</span></td>
+            </tr>
+            <tr>
+              <td><code>m27_verify_top</code></td>
+              <td><strong>Full Falcon-512 Verification Engine</strong></td>
+              <td><strong>9,840</strong></td>
+              <td><strong>6,920</strong></td>
+              <td><strong>14</strong></td>
+              <td><strong>8</strong></td>
+              <td><span class="badge-chip green">82/82 KAT EXACT</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Algorithmic Comparison: Falcon vs Dilithium vs SPHINCS+ -->
+      <div style="background: var(--bg-surface); border: 1px solid var(--border-color); padding: 1.5rem; margin-bottom: 4rem;">
+        <h3 style="font-family: var(--font-display); font-size: 1.15rem; text-transform: uppercase; margin-bottom: 1rem;">
+          NIST Post-Quantum Signature Standards Comparison
+        </h3>
+        <table class="tech-table">
+          <thead>
+            <tr>
+              <th>Scheme (NIST Level 1)</th>
+              <th>Underlying Math Problem</th>
+              <th>Public Key Size</th>
+              <th>Signature Size</th>
+              <th>Hardware Footprint</th>
+              <th>Key Strengths</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="background: rgba(45, 76, 255, 0.04);">
+              <td><strong>Falcon-512 (FN-DSA)</strong></td>
+              <td>NTRU Short Integer Solution (SIS)</td>
+              <td><strong>897 Bytes</strong></td>
+              <td><strong>666 Bytes</strong></td>
+              <td>Balanced (6x DSP)</td>
+              <td><strong>Smallest Bandwidth (PK + Sig = 1.5 KB)</strong></td>
+            </tr>
+            <tr>
+              <td><strong>ML-DSA-44 (Dilithium)</strong></td>
+              <td>Module Learning with Errors (M-LWE)</td>
+              <td>1,312 Bytes</td>
+              <td>2,420 Bytes</td>
+              <td>Pure Integer (No FPU)</td>
+              <td>Simpler arithmetic; 3.7x larger signatures</td>
+            </tr>
+            <tr>
+              <td><strong>SLH-DSA-128 (SPHINCS+)</strong></td>
+              <td>Stateless Hash-based (SHA/SHAKE)</td>
+              <td>32 Bytes</td>
+              <td>7,856 Bytes</td>
+              <td>Hash Engine only</td>
+              <td>Conservative assumptions; massive signatures</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- Corporate Site Footer (ABTC Style) -->
+  <footer class="site-footer" role="contentinfo">
+    <div class="container">
+      <div class="footer-nav">
+        <a href="#pipeline">Protocol Pipeline</a>
+        <a href="#lattice">Lattice Geometry</a>
+        <a href="#pornin-fpu">Pornin FPU</a>
+        <a href="#architecture">ZCU104 RTL Core</a>
+        <a href="#benchmarks">Hardware Benchmarks</a>
+      </div>
+      <p style="margin-bottom: 0.5rem;">
+        FALCON / FN-DSA HARDWARE REFERENCE SYSTEM · IMPLEMENTED TO NIST FIPS 206 DRAFT STANDARD
+      </p>
+      <p style="color: var(--text-dim); font-size: 0.72rem;">
+        Designed in compliance with modern web accessibility and responsive architecture. Arithmetic based on Thomas Pornin's constant-time c-fn-dsa.
+      </p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="falcon_engine.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
