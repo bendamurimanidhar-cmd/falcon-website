@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="light dark">
-  <title>FALCON-512 / FN-DSA — NIST FIPS 206 Post-Quantum Hardware Architecture</title>
-  <meta name="description" content="Interactive end-to-end mathematical and FPGA hardware explainer for the Falcon / FN-DSA post-quantum signature scheme (NIST FIPS 206). Emulating ABTC high-performance design language.">
+  <title>FALCON.COM — NIST FIPS 206 Post-Quantum Hardware Architecture</title>
+  <meta name="description" content="FALCON.COM — Interactive end-to-end mathematical and FPGA hardware explainer for the Falcon / FN-DSA post-quantum signature scheme (NIST FIPS 206). Emulating ABTC high-performance design language.">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -16,10 +16,10 @@
   <!-- Sticky Chamfered Header (ABTC Signature Style) -->
   <div class="header-wrapper">
     <header class="chamfered-header" role="banner">
-      <a href="#" class="brand-badge" aria-label="FALCON FN-DSA Home">
+      <a href="#" class="brand-badge" aria-label="FALCON.COM Home">
         <div class="brand-icon">F</div>
         <div>
-          <div class="brand-title">FALCON-512</div>
+          <div class="brand-title">FALCON.COM</div>
           <div class="brand-subtitle">FN-DSA · NIST FIPS 206</div>
         </div>
       </a>
@@ -1254,18 +1254,29 @@
   <!-- Corporate Site Footer (ABTC Style) -->
   <footer class="site-footer" role="contentinfo">
     <div class="container">
-      <div class="footer-nav">
-        <a href="#pipeline">Protocol Pipeline</a>
-        <a href="#lattice">Lattice Geometry</a>
-        <a href="#pornin-fpu">Pornin FPU</a>
-        <a href="#architecture">ZCU104 RTL Core</a>
-        <a href="#benchmarks">Hardware Benchmarks</a>
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1.5rem;">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <div class="brand-icon">F</div>
+          <div>
+            <div style="font-family: var(--font-display); font-weight: 800; font-size: 1.1rem; letter-spacing: 0.05em; color: var(--text-main);">FALCON.COM</div>
+            <div style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-muted); letter-spacing: 0.08em;">NIST FIPS 206 POST-QUANTUM HARDWARE</div>
+          </div>
+        </div>
+        <div class="footer-nav" style="margin-bottom: 0;">
+          <a href="#pipeline">Protocol Pipeline</a>
+          <a href="#flowchart">Flow Graph</a>
+          <a href="#walkthrough">Alice & Bob</a>
+          <a href="#lattice">Lattice Geometry</a>
+          <a href="#pornin-fpu">Pornin FPU</a>
+          <a href="#architecture">ZCU104 Core</a>
+          <a href="#benchmarks">Benchmarks</a>
+        </div>
       </div>
-      <p style="margin-bottom: 0.5rem;">
-        FALCON / FN-DSA HARDWARE REFERENCE SYSTEM · IMPLEMENTED TO NIST FIPS 206 DRAFT STANDARD
+      <p style="margin-bottom: 0.5rem; font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.05em;">
+        FALCON.COM · OFFICIAL NIST FIPS 206 FN-DSA HARDWARE REFERENCE SYSTEM
       </p>
-      <p style="color: var(--text-dim); font-size: 0.72rem;">
-        Designed in compliance with modern web accessibility and responsive architecture. Arithmetic based on Thomas Pornin's constant-time c-fn-dsa.
+      <p style="color: var(--text-dim); font-size: 0.72rem; margin: 0;">
+        Designed in compliance with ABTC high-performance corporate web standard. Arithmetic based on Thomas Pornin's constant-time c-fn-dsa.
       </p>
     </div>
   </footer>
